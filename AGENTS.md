@@ -13,6 +13,16 @@ This repository is a time-critical OpenAI WebMCP Challenge submission. Preserve 
 - Repeated reflow on a valid plate must be an idempotent no-op.
 - Tool results must remain compact JSON-serializable receipts plus verifiable state.
 
+## Ponytail engineering ladder
+
+When modifying this codebase, prefer solutions in this order:
+
+1. **Browser/platform primitives** — use what the platform already provides.
+2. **Reuse existing domain functions** — extend `domain.js` internals before adding new code.
+3. **No new dependency** unless the capability genuinely cannot be built with platform APIs.
+4. **Minimum coherent solution** — the smallest change that satisfies the invariant.
+5. **Never remove** validation, security, accessibility, error handling, or tests.
+
 ## Before committing
 
 Run:

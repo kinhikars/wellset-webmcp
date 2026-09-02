@@ -73,6 +73,50 @@ test("120 deterministic lock/block/reflow scenarios preserve every invariant", a
   }
 });
 
+test("insufficient capacity fails closed with formal violation", () => {
+  let state = generateLayout(createEmptyState());
+  const innerCount = INNER_WELLS.length;
+  for (let i = 0; i < innerCount - 1; i += 1) {
+    state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const reflowed = reflowUnlocked(state);
+  assert.equal(reflowed.validation.valid, false);
+  assert.ok(reflowed.validation.violations.some((v) => v.code === "insufficient_capacity"));
+  assert.equal(reflowed.lastReceipt.noOp, true);
+  assert.equal(reflowed.lastReceipt.reason, "insufficient_capacity");
+  assert.deepEqual(reflowed.assignments, state.assignments);
+});
+
+test("recovery after blocked wells are unblocked", () => {
+  let state = generateLayout(createEmptyState());
+  const innerCount = INNER_WELLS.length;
+  for (let i = 0; i < innerCount - 1; i += 1) {
+    state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const blocked = reflowUnlocked(state);
+  assert.equal(blocked.validation.valid, false);
+  for (let i = 0; i < innerCount - 1; i += 1) {
+    state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const recovered = reflowUnlocked(state);
+  assert.equal(recovered.validation.valid, true);
+  assert.ok(EXPERIMENTS.every((e) => Object.values(recovered.assignments).includes(e.id)));
+});
+
+test("locked wells never move during failed reflow", () => {
+  let state = generateLayout(createEmptyState());
+  const lockWell = INNER_WELLS[0];
+  const lockedExperiment = state.assignments[lockWell];
+  state = toggleLock(state, lockWell);
+  for (let i = 0; i < INNER_WELLS.length - 1; i += 1) {
+    if (INNER_WELLS[i] !== lockWell) state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const reflowed = reflowUnlocked(state);
+  assert.equal(reflowed.validation.valid, false);
+  assert.equal(reflowed.assignments[lockWell], lockedExperiment);
+  assert.deepEqual(reflowed.lockedWells, state.lockedWells);
+});
+
 test("snapshots are JSON serializable and detached", () => {
   const state = generateLayout(createEmptyState());
   const result = snapshot(state);

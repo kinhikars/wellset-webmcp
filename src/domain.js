@@ -165,13 +165,21 @@ export function reflowUnlocked(previous) {
   const unlockedExperiments = EXPERIMENTS.filter((experiment) => !lockedExperimentIds.has(experiment.id));
 
   if (availableWells.length < unlockedExperiments.length) {
-    return finalize(previous, { lastMovedWells: [] }, {
+    const candidate = finalize(previous, { lastMovedWells: [] }, {
       operation: "reflow_unlocked",
       noOp: true,
       reason: "insufficient_capacity",
       movedWells: [],
       preservedLocks: previous.lockedWells,
     });
+    candidate.validation.violations.push({
+      code: "insufficient_capacity",
+      message: `Insufficient capacity: ${availableWells.length} available wells cannot accommodate ${unlockedExperiments.length} unlocked experiments.`,
+    });
+    candidate.validation.valid = false;
+    candidate.lastReceipt.violationCount = candidate.validation.violations.length;
+    candidate.lastReceipt.valid = false;
+    return candidate;
   }
 
   const assignments = { ...lockedAssignments };

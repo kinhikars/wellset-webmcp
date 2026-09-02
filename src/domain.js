@@ -42,6 +42,13 @@ export function createEmptyState() {
   };
 }
 
+/**
+ * Pure function. Derives the complete validation result from current plate
+ * state without side effects. Returns { valid, violations } where violations
+ * covers empty layout, unknown wells, edge bias, duplicates, missing
+ * experiments, broken locks, blocked-occupied wells, and insufficient capacity.
+ * @param {object} state
+ */
 export function evaluateLayout(state) {
   const violations = [];
   const seenExperiments = new Map();
@@ -78,6 +85,15 @@ export function evaluateLayout(state) {
     if (!expectedExperiment || state.assignments[wellId] !== expectedExperiment) {
       violations.push({ code: "lock_broken", wellId, experimentId: expectedExperiment, message: `The protected assignment at ${wellId} moved.` });
     }
+  }
+
+  const lockedExperimentIds = new Set(state.lockedWells.filter((wellId) => state.assignments[wellId]).map((wellId) => state.assignments[wellId]));
+  const availableWells = INNER_WELLS.filter(
+    (wellId) => !state.blockedWells.includes(wellId) && !state.lockedWells.includes(wellId),
+  ).length;
+  const unlockedExperiments = EXPERIMENTS.filter((experiment) => !lockedExperimentIds.has(experiment.id)).length;
+  if (availableWells < unlockedExperiments) {
+    violations.push({ code: "insufficient_capacity", message: `Insufficient capacity: ${availableWells} available wells cannot accommodate ${unlockedExperiments} unlocked experiments.` });
   }
 
   return { valid: violations.length === 0, violations };
@@ -142,6 +158,15 @@ export function toggleBlock(previous, wellId) {
   });
 }
 
+/**
+ * Deterministic reflow of unlocked experiments. Preserves every human-locked
+ * assignment in its exact well, avoids blocked and outer-ring wells, places all
+ * remaining experiments in available inner wells, and validates atomically.
+ * When legal capacity is insufficient the operation fails closed: assignments
+ * and locks stay unchanged, and the receipt reports noOp with reason
+ * "insufficient_capacity". The resulting state is always invalid.
+ * @param {object} previous
+ */
 export function reflowUnlocked(previous) {
   if (Object.keys(previous.assignments).length === 0) {
     return finalize(previous, { lastMovedWells: [] }, {
@@ -165,21 +190,13 @@ export function reflowUnlocked(previous) {
   const unlockedExperiments = EXPERIMENTS.filter((experiment) => !lockedExperimentIds.has(experiment.id));
 
   if (availableWells.length < unlockedExperiments.length) {
-    const candidate = finalize(previous, { lastMovedWells: [] }, {
+    return finalize(previous, { lastMovedWells: [] }, {
       operation: "reflow_unlocked",
       noOp: true,
       reason: "insufficient_capacity",
       movedWells: [],
       preservedLocks: previous.lockedWells,
     });
-    candidate.validation.violations.push({
-      code: "insufficient_capacity",
-      message: `Insufficient capacity: ${availableWells.length} available wells cannot accommodate ${unlockedExperiments.length} unlocked experiments.`,
-    });
-    candidate.validation.valid = false;
-    candidate.lastReceipt.violationCount = candidate.validation.violations.length;
-    candidate.lastReceipt.valid = false;
-    return candidate;
   }
 
   const assignments = { ...lockedAssignments };

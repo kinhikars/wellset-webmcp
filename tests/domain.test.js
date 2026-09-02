@@ -87,7 +87,31 @@ test("insufficient capacity fails closed with formal violation", () => {
   assert.deepEqual(reflowed.assignments, state.assignments);
 });
 
-test("recovery after blocked wells are unblocked", () => {
+test("evaluateLayout detects insufficient capacity directly", () => {
+  let state = generateLayout(createEmptyState());
+  const innerCount = INNER_WELLS.length;
+  for (let i = 0; i < innerCount - 1; i += 1) {
+    state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const validation = evaluateLayout(state);
+  assert.equal(validation.valid, false);
+  assert.ok(validation.violations.some((v) => v.code === "insufficient_capacity"));
+});
+
+test("insufficient_capacity violation survives state recomputation", () => {
+  let state = generateLayout(createEmptyState());
+  const innerCount = INNER_WELLS.length;
+  for (let i = 0; i < innerCount - 1; i += 1) {
+    state = toggleBlock(state, INNER_WELLS[i]);
+  }
+  const reflowed = reflowUnlocked(state);
+  const recomputed = evaluateLayout(reflowed);
+  assert.ok(recomputed.violations.some((v) => v.code === "insufficient_capacity"));
+  assert.equal(recomputed.valid, false);
+  assert.deepEqual(reflowed.validation, recomputed);
+});
+
+test("recovery continues from failed-reflow state", () => {
   let state = generateLayout(createEmptyState());
   const innerCount = INNER_WELLS.length;
   for (let i = 0; i < innerCount - 1; i += 1) {
@@ -95,6 +119,8 @@ test("recovery after blocked wells are unblocked", () => {
   }
   const blocked = reflowUnlocked(state);
   assert.equal(blocked.validation.valid, false);
+  assert.ok(blocked.validation.violations.some((v) => v.code === "insufficient_capacity"));
+  state = blocked;
   for (let i = 0; i < innerCount - 1; i += 1) {
     state = toggleBlock(state, INNER_WELLS[i]);
   }

@@ -80,6 +80,15 @@ export function evaluateLayout(state) {
     }
   }
 
+  const lockedExperimentIds = new Set(state.lockedWells.filter((wellId) => state.assignments[wellId]).map((wellId) => state.assignments[wellId]));
+  const availableWells = INNER_WELLS.filter(
+    (wellId) => !state.blockedWells.includes(wellId) && !state.lockedWells.includes(wellId),
+  ).length;
+  const unlockedExperiments = EXPERIMENTS.filter((experiment) => !lockedExperimentIds.has(experiment.id)).length;
+  if (availableWells < unlockedExperiments) {
+    violations.push({ code: "insufficient_capacity", message: `Insufficient capacity: ${availableWells} available wells cannot accommodate ${unlockedExperiments} unlocked experiments.` });
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -165,21 +174,13 @@ export function reflowUnlocked(previous) {
   const unlockedExperiments = EXPERIMENTS.filter((experiment) => !lockedExperimentIds.has(experiment.id));
 
   if (availableWells.length < unlockedExperiments.length) {
-    const candidate = finalize(previous, { lastMovedWells: [] }, {
+    return finalize(previous, { lastMovedWells: [] }, {
       operation: "reflow_unlocked",
       noOp: true,
       reason: "insufficient_capacity",
       movedWells: [],
       preservedLocks: previous.lockedWells,
     });
-    candidate.validation.violations.push({
-      code: "insufficient_capacity",
-      message: `Insufficient capacity: ${availableWells.length} available wells cannot accommodate ${unlockedExperiments.length} unlocked experiments.`,
-    });
-    candidate.validation.valid = false;
-    candidate.lastReceipt.violationCount = candidate.validation.violations.length;
-    candidate.lastReceipt.valid = false;
-    return candidate;
   }
 
   const assignments = { ...lockedAssignments };

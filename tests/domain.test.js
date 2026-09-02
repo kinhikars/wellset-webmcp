@@ -120,6 +120,7 @@ test("recovery continues from failed-reflow state", () => {
   const blocked = reflowUnlocked(state);
   assert.equal(blocked.validation.valid, false);
   assert.ok(blocked.validation.violations.some((v) => v.code === "insufficient_capacity"));
+  state = blocked;
   for (let i = 0; i < innerCount - 1; i += 1) {
     state = toggleBlock(state, INNER_WELLS[i]);
   }

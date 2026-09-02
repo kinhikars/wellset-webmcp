@@ -1,0 +1,18 @@
+{
+  "name": "wellset-webmcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A mixed-initiative microplate layout canvas built with WebMCP.",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "test": "node --test",
+    "check": "node --check src/domain.js && node --check src/store.js && node --check src/webmcp.js && node --check src/app.js",
+    "verify": "npm run check && npm test",
+    "serve": "node scripts/serve.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

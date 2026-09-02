@@ -42,6 +42,13 @@ export function createEmptyState() {
   };
 }
 
+/**
+ * Pure function. Derives the complete validation result from current plate
+ * state without side effects. Returns { valid, violations } where violations
+ * covers empty layout, unknown wells, edge bias, duplicates, missing
+ * experiments, broken locks, blocked-occupied wells, and insufficient capacity.
+ * @param {object} state
+ */
 export function evaluateLayout(state) {
   const violations = [];
   const seenExperiments = new Map();
@@ -151,6 +158,15 @@ export function toggleBlock(previous, wellId) {
   });
 }
 
+/**
+ * Deterministic reflow of unlocked experiments. Preserves every human-locked
+ * assignment in its exact well, avoids blocked and outer-ring wells, places all
+ * remaining experiments in available inner wells, and validates atomically.
+ * When legal capacity is insufficient the operation fails closed: assignments
+ * and locks stay unchanged, and the receipt reports noOp with reason
+ * "insufficient_capacity". The resulting state is always invalid.
+ * @param {object} previous
+ */
 export function reflowUnlocked(previous) {
   if (Object.keys(previous.assignments).length === 0) {
     return finalize(previous, { lastMovedWells: [] }, {

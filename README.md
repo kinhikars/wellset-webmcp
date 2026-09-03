@@ -1,12 +1,29 @@
-# WellSet
+# <img src="assets/wellset-mark.svg" alt="WellSet mark" width="36" height="36" valign="middle" /> WellSet
 
 **Human judgment. Agent precision. Better experiments.**
 
 WellSet is a mixed-initiative experiment-layout canvas built for the [OpenAI WebMCP Challenge](https://openai.com/webmcp-challenge/). A scientist edits the visual plate; a browser agent works through semantic WebMCP tools; both operate on the same live, validated state.
 
-The demonstration uses a 96-well plate because spatial choices matter: edge positions can bias results, some wells become unavailable, and deliberate control placements should not move. The human supplies that contextual judgment. The agent performs a deterministic reflow around it.
+**[Live Application](https://wellset-webmcp.vercel.app/)** · **[Evaluation Report](docs/EVALS.md)** · **[PRD](docs/PRD.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Security](SECURITY.md)** · **[Contributing](CONTRIBUTING.md)** · **[License](LICENSE)**
+
+The demonstration uses a 96-well plate because spatial choices matter: edge positions can bias results, some wells become unavailable, and deliberate control placements should not move. The human supplies that contextual judgment. The agent performs a deterministic reflow around it—moving 24 placements and protecting two locked controls while reducing violations from two to zero.
 
 > **Status:** competition vertical slice. WellSet is not validated for clinical or production laboratory use.
+
+## Verified evidence
+
+The evaluated application release ([`d3d05d51c658c1eda5c5eff3c7373e16197317f8`](https://github.com/kinhikars/wellset-webmcp/commit/d3d05d51c658c1eda5c5eff3c7373e16197317f8)) was verified across automated implementation tests and live browser-agent evaluation. Full details and methodology are documented in [docs/EVALS.md](docs/EVALS.md).
+
+- **136/136 automated tests** passing in CI across domain invariants, schema bounds, and lifecycle safety.
+- **5/5 fresh real ChatGPT Site Tools trials passed** in the live environment using GPT-5.6 Terra Light on the canonical scenario.
+- **All three tools discovered in 5/5** sessions.
+- **Correct autonomous operation selected in 5/5** sessions without naming tools in the prompt.
+- **Locked controls preserved in 5/5** executions.
+- **Violations reduced from 2 to 0 in 5/5** executions.
+- **Receipt matched the UI in 5/5** executions.
+- **Median completion time 38 seconds** across live agent trials.
+
+*Note: This evaluation consists of five recorded trials using one model and one canonical scenario. The original ten-trial target was not completed for this release evaluation.*
 
 ## The 30-second interaction
 
@@ -100,6 +117,7 @@ src/store.js        authoritative live state
 src/webmcp.js       static imperative Site Tools registration
 src/app.js          human interface and shared-state rendering
 tests/              domain invariants and registration contract
+docs/EVALS.md       live Site Tools evaluation and benchmark methodology
 docs/ARCHITECTURE.md architecture and transaction boundaries
 docs/DECISIONS.md    competition decision record
 AGENTS.md            constraints for coding agents and contributors

@@ -78,7 +78,7 @@ test("reflow returns a compact verifiable result for the supported hero flow", a
     assert.equal(result.status, "success");
     assert.deepEqual(result.revisions, { before: 5, after: 6 });
     assert.equal(result.moved.count, 24);
-    assert.deepEqual(result.moved.wells[0], ["B6", "B8"]);
+    assert.deepEqual(result.moved.wells[0], ["sample-1-1", "B6", "B8"]);
     assert.deepEqual(result.preservedLockedWells, ["B2", "B3"]);
     assert.deepEqual(result.violations, { before: 2, after: 0 });
     assert.equal(result.valid, true);

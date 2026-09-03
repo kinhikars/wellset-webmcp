@@ -18,7 +18,7 @@ function compactReflowResult(previous, next) {
     revisions: { before: previous.revision, after: next.revision },
     moved: {
       count: receipt.movedWells.length,
-      wells: receipt.movedWells.map(({ from, to }) => [from, to]),
+      wells: receipt.movedWells.map(({ experimentId, from, to }) => [experimentId, from, to]),
     },
     preservedLockedWells: [...receipt.preservedLocks],
     violations: {

@@ -219,7 +219,7 @@ The top-level page registers these tools once through `document.modelContext.reg
 |---|---:|---|
 | `wellset_inspect_plate` | No | Returns the current brief, assignments, locks, blocks, revision, and violations |
 | `wellset_generate_layout` | Yes | Replaces the layout, clears human edits, validates, and returns a receipt plus snapshot |
-| `wellset_reflow_unlocked` | Yes | Preserves locks, reflows unlocked experiments, validates, and returns a receipt plus snapshot |
+| `wellset_reflow_unlocked` | Yes | Preserves locks, reflows unlocked experiments, validates, and returns a compact receipt; use inspect for the complete current snapshot |
 
 All three tools use a closed empty-object input schema with `additionalProperties: false`. Handlers must also validate inputs at runtime. Only the inspect tool may carry `readOnlyHint: true`.
 

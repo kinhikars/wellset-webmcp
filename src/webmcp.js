@@ -8,6 +8,36 @@ function receiptWithSnapshot(receipt) {
   return { receipt: structuredClone(receipt), state: snapshot(plateStore.getState()) };
 }
 
+function compactReflowResult(previous, next) {
+  const receipt = next.lastReceipt;
+  const failed = !next.validation.valid;
+  const status = failed ? "failure" : receipt.noOp ? "no_op" : "success";
+  const result = {
+    operation: receipt.operation,
+    status,
+    revisions: { before: previous.revision, after: next.revision },
+    moved: {
+      count: receipt.movedWells.length,
+      wells: receipt.movedWells.map(({ from, to }) => [from, to]),
+    },
+    preservedLockedWells: [...receipt.preservedLocks],
+    violations: {
+      before: previous.validation.violations.length,
+      after: next.validation.violations.length,
+    },
+    valid: next.validation.valid,
+  };
+
+  if (failed) {
+    result.error = {
+      code: receipt.reason ?? "validation_failed",
+      violationCodes: [...new Set(next.validation.violations.map(({ code }) => code))],
+    };
+  }
+
+  return result;
+}
+
 export function getWebMCPStatus() {
   if (typeof document === "undefined" || typeof document.modelContext?.registerTool !== "function") {
     return { supported: false, registered: false, label: "WebMCP unavailable" };
@@ -25,6 +55,7 @@ export async function registerWebMCPTools() {
   }
   if (globalThis[REGISTRATION_KEY]) return globalThis[REGISTRATION_KEY];
 
+  const lifecycle = new AbortController();
   globalThis[REGISTRATION_KEY] = (async () => {
     await document.modelContext.registerTool({
       name: "wellset_inspect_plate",
@@ -37,7 +68,7 @@ export async function registerWebMCPTools() {
         }
         return snapshot(plateStore.getState());
       },
-    });
+    }, { signal: lifecycle.signal });
 
     await document.modelContext.registerTool({
       name: "wellset_generate_layout",
@@ -50,7 +81,7 @@ export async function registerWebMCPTools() {
         const next = plateStore.generate();
         return receiptWithSnapshot(next.lastReceipt);
       },
-    });
+    }, { signal: lifecycle.signal });
 
     await document.modelContext.registerTool({
       name: "wellset_reflow_unlocked",
@@ -60,13 +91,15 @@ export async function registerWebMCPTools() {
         if (input === null || typeof input !== "object" || Array.isArray(input) || Object.keys(input).length > 0) {
           throw new TypeError("wellset_reflow_unlocked accepts an empty object only.");
         }
+        const previous = plateStore.getState();
         const next = plateStore.reflow();
-        return receiptWithSnapshot(next.lastReceipt);
+        return compactReflowResult(previous, next);
       },
-    });
+    }, { signal: lifecycle.signal });
 
     return { supported: true, registered: true, label: "3 site tools registered" };
   })().catch((error) => {
+    lifecycle.abort();
     delete globalThis[REGISTRATION_KEY];
     throw error;
   });

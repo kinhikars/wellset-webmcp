@@ -1,0 +1,29 @@
+name: Improvement proposal
+description: Propose a focused, evidence-led improvement.
+title: "[Proposal]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: WellSet intentionally keeps a small tool surface. Explain the problem before proposing implementation.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or learning goal
+      description: Who experiences this problem, and what evidence suggests it matters?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest useful change and why it belongs in WellSet.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Safety and scope
+      description: Note effects on WebMCP tools, deterministic behaviour, accessibility, security, or scientific claims.
+    validations:
+      required: true

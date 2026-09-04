@@ -2,9 +2,12 @@
 
 **Human judgment. Agent precision. Better experiments.**
 
+[![Verify](https://github.com/kinhikars/wellset-webmcp/actions/workflows/ci.yml/badge.svg)](https://github.com/kinhikars/wellset-webmcp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0b6b50.svg)](LICENSE)
+
 WellSet is a mixed-initiative experiment-layout canvas built for the [OpenAI WebMCP Challenge](https://openai.com/webmcp-challenge/). A scientist edits the visual plate; a browser agent works through semantic WebMCP tools; both operate on the same live, validated state.
 
-**[Live Application](https://wellset-webmcp.vercel.app/)** · **[Evaluation Report](docs/EVALS.md)** · **[PRD](docs/PRD.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Security](SECURITY.md)** · **[Contributing](CONTRIBUTING.md)** · **[License](LICENSE)**
+**[Live Application](https://wellset-webmcp.vercel.app/)** · **[Demo Video](https://www.youtube.com/watch?v=TGqKlIl3bYA)** · **[Devpost Entry](https://devpost.com/software/wellset)** · **[Evaluation Report](docs/EVALS.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Security](SECURITY.md)** · **[Contributing](CONTRIBUTING.md)**
 
 The demonstration uses a 96-well plate because spatial choices matter: edge positions can bias results, some wells become unavailable, and deliberate control placements should not move. The human supplies that contextual judgment. The agent performs a deterministic reflow around it—moving 24 placements and protecting two locked controls while reducing violations from two to zero.
 
@@ -28,8 +31,8 @@ The evaluated application release ([`d3d05d51c658c1eda5c5eff3c7373e16197317f8`](
 ## The 30-second interaction
 
 1. Ask the agent to generate the experiment layout.
-2. Lock two occupied controls in the visual interface.
-3. Block two occupied sample wells. They become two visible violations.
+2. Lock occupied controls **B2** and **B3** in the visual interface.
+3. Switch to Block mode and block occupied sample wells **B6** and **B7**. They become two visible violations.
 4. Ask: **“Reflow around my blocked wells without moving the locked controls.”**
 5. The agent invokes one tool. Unlocked samples move, the controls stay fixed, and the display changes from **2 violations → 0**.
 
@@ -47,7 +50,7 @@ WellSet progressively enhances a normal website. All human controls still work w
 
 ## Site tools
 
-The page statically registers three top-level imperative tools with [`document.modelContext.registerTool()`](https://learn.chatgpt.com/docs/webmcp):
+The page statically registers three top-level imperative tools with [`document.modelContext.registerTool()`](https://webmachinelearning.github.io/webmcp/):
 
 | Tool | Side effect | Purpose |
 |---|---:|---|

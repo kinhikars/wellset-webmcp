@@ -94,9 +94,9 @@ function render(state) {
             <p class="eyebrow">Live shared artifact</p>
             <h2>Plate A</h2>
           </div>
-          <div class="validation ${state.validation.valid ? "validation--valid" : "validation--invalid"}">
-            <span class="validation-count">${state.validation.violations.length}</span>
-            <span>${state.validation.violations.length === 1 ? "violation" : "violations"}</span>
+          <div class="validation ${empty ? "validation--waiting" : state.validation.valid ? "validation--valid" : "validation--invalid"}">
+            <span class="validation-count">${empty ? "—" : state.validation.violations.length}</span>
+            <span>${empty ? "awaiting layout" : state.validation.violations.length === 1 ? "violation" : "violations"}</span>
           </div>
         </div>
 
